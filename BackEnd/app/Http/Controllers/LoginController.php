@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\AuthServiceContract;
 use App\Exceptions\InvalidCredentialsException;
 use App\Http\Requests\IdentifyRequest;
 use App\Http\Requests\VerifyRequest;
 use App\Services\Auth\AuthService;
-use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
