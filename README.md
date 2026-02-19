@@ -14,9 +14,9 @@
 Designed with clean architecture principles, scalable backend services, and a smooth interactive UI.
 
 <div align="center">
-  <img alt="last-commit" src="https://img.shields.io/github/last-commit/noltrax/ChronoVault?style=flat&logo=git&color=0080ff">
-  <img alt="repo-top-language" src="https://img.shields.io/github/languages/top/noltrax/ChronoVault?style=flat&color=0080ff">
-  <img alt="license" src="https://img.shields.io/github/license/noltrax/ChronoVault?style=flat&color=0080ff">
+  <img alt="last-commit" src="https://img.shields.io/github/last-commit/noltrax/RippleAuth?style=flat&logo=git&color=0080ff">
+  <img alt="repo-top-language" src="https://img.shields.io/github/languages/top/noltrax/RippleAuth?style=flat&color=0080ff">
+  <img alt="license" src="https://img.shields.io/github/license/noltrax/RippleAuth?style=flat&color=0080ff">
   <img alt="docker" src="https://img.shields.io/badge/docker-ready-blue?style=flat&logo=docker">
 </div>
 
