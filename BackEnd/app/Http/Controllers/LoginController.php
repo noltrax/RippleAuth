@@ -6,25 +6,41 @@ use App\Contracts\AuthServiceContract;
 use App\Exceptions\InvalidCredentialsException;
 use App\Http\Requests\IdentifyRequest;
 use App\Http\Requests\VerifyRequest;
+use App\Services\Auth\AuthService;
 use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
-    public function identify(IdentifyRequest $request, AuthServiceContract $authService)
+
+    public function __construct(
+        private AuthService  $authService,
+        )
+    {
+
+    }
+
+    /**
+     * @throws InvalidCredentialsException
+     */
+    public function identify(IdentifyRequest $request)
     {
         $data = $request->validated();
-        $identifierToken = $authService->identify($data);
+        $identifierToken = $this->authService->identify($data);
 
         return response()->json([
             'message' => 'Identifier accepted',
             'identifier_token' => $identifierToken,
         ], 200);
     }
-    public function verify(VerifyRequest $request, AuthServiceContract $authService)
+
+    /**
+     * @throws InvalidCredentialsException
+     */
+    public function verify(VerifyRequest $request)
     {
         $data = $request->validated();
 
-        $token = $authService->verify($data);
+        $token = $this->authService->verify($data);
 
         return response()->json([
             'message' => 'Login successful',
