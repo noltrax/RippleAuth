@@ -24,7 +24,7 @@ Designed with clean architecture principles, scalable backend services, and a sm
 
 ---
 
-# 🎥 Live Demo
+# 🎥 Demo
 
 ![RippleAuth Demo](./Docs/Demo.gif)
 
