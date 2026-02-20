@@ -4,25 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="05292f18-9297-4a4d-8556-6bfa131164f3" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/BackEnd/app/Services/Auth/AuthService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BackEnd/app/Services/Auth/LoginSessionService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BackEnd/app/Services/Auth/OtpService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BackEnd/app/Services/Auth/TokenService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BackEnd/app/Services/Auth/UserResolverService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BackEnd/config/cors.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/app/Contracts/AuthServiceContract.php" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/app/Http/Controllers/LoginController.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/app/Http/Controllers/LoginController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/app/Models/LoginSession.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/app/Models/LoginSession.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/app/Models/Otp.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/app/Models/Otp.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/app/Models/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/app/Models/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/app/Providers/AuthServiceProvider.php" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/app/Services/AuthService.php" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/bootstrap/app.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/bootstrap/app.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/bootstrap/providers.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/bootstrap/providers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/database/migrations/0001_01_01_000000_create_users_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/database/migrations/0001_01_01_000000_create_users_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/database/migrations/2026_02_15_110900_create_otps_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/database/migrations/2026_02_15_110900_create_otps_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/database/migrations/2026_02_15_144535_create_login_session_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/database/migrations/2026_02_15_144535_create_login_session_table.php" afterDir="false" />
+    <list default="true" id="05292f18-9297-4a4d-8556-6bfa131164f3" name="Changes" comment="fix warning">
+      <change beforePath="$PROJECT_DIR$/BackEnd/app/Services/Auth/LoginSessionService.php" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/app/Services/Auth/LoginSessionService.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,10 +38,10 @@
     &quot;accountId&quot;: &quot;237db153-c4d7-4f59-b268-8b3ef4f53f79&quot;
   }
 }</component>
-  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
-  <component name="KubernetesApiProvider"><![CDATA[{
-  "isMigrated": true
-}]]></component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$USER_HOME$/scoop/apps/php/current/php.exe">
     <include_path>
       <path value="$PROJECT_DIR$/BackEnd/vendor/mockery/mockery" />
@@ -226,7 +209,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1771483801982</updated>
-      <workItem from="1771483805148" duration="15277000" />
+      <workItem from="1771483805148" duration="19727000" />
     </task>
     <task id="LOCAL-00001" summary="first initial">
       <option name="closed" value="true" />
@@ -252,7 +235,23 @@
       <option name="project" value="LOCAL" />
       <updated>1771485163309</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="dependencies injected to AuthService, fix bugs , add relationship between LoginSession and user">
+      <option name="closed" value="true" />
+      <created>1771503673637</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1771503673637</updated>
+    </task>
+    <task id="LOCAL-00005" summary="fix warning">
+      <option name="closed" value="true" />
+      <created>1771503785722</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1771503785722</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -260,7 +259,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="first initial" />
-    <option name="LAST_COMMIT_MESSAGE" value="first initial" />
+    <MESSAGE value="dependencies injected to AuthService, fix bugs , add relationship between LoginSession and user" />
+    <MESSAGE value="fix warning" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix warning" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
