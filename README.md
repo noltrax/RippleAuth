@@ -223,7 +223,7 @@ OTP_LENGTH=6
 - Single Responsibility per service  
 - Clean orchestration via AuthService  
 - Strategy Pattern for OTP delivery  
-- Dependency Injection via Service Container  
+- Dependency Injection 
 - Stateless authentication  
 - Frontend / Backend separation of concerns  
 
