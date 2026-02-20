@@ -132,55 +132,15 @@ Auth
 | **TokenService**        | Responsible for issuing, refreshing, and revoking authentication tokens (e.g., Laravel Sanctum integration).                                            |
 | **UserResolverService** | Resolves user identity during authentication (finds existing user or creates a new one based on identifier such as phone or email).                     |
 
----
 
-# 🧠 Service Container & Service Providers
 
-This backend leverages Laravel’s Service Container for dependency injection and loose coupling.
 
-## Why?
 
-- Swap SMS provider without touching business logic  
-- Test services independently  
-- Follow Dependency Inversion Principle  
-- Maintain scalable architecture  
-
----
-
-## Service Binding Example
-
-In `AppServiceProvider` (or a dedicated `AuthServiceProvider`):
-
-```php
-public function register(): void
-{
-    $this->app->bind(
-        OtpSenderContract::class,
-        SmsOtpSender::class
-    );
-
-    $this->app->bind(
-        AuthServiceContract::class,
-        AuthService::class
-    );
-}
-```
-
-### What This Achieves
-
-- `AuthService` depends on `OtpSenderContract`  
-- The container injects `SmsOtpSender`  
-- You can switch to `EmailOtpSender` by changing one binding  
-- Zero modification required in `AuthService`  
-
-This follows the Strategy Pattern and Dependency Injection principles.
-
----
 
 # 🛡 Security Features
 
 - OTPs are hashed before storage  
-- OTP expiration (default: 5 minutes)  
+- OTP expiration (default: 10 minutes)  
 - One-time OTP usage (deleted after validation)  
 - LoginSession expiration  
 - Token-based authentication (Sanctum)  
