@@ -48,7 +48,7 @@ Designed with clean architecture principles, scalable backend services, and a sm
 - Two-step login flow  
 - OTP generation & hashing  
 - Login session management  
-- Token-based authentication (Laravel Sanctum)  
+- Token-based authentication 
 - Service-based architecture  
 - Strategy pattern for OTP delivery (SMS / Email)  
 
@@ -100,7 +100,6 @@ User submits:
 - Validates LoginSession  
 - Validates OTP  
 - Deletes OTP record  
-- Issues Sanctum token  
 - Returns API token  
 
 ---
@@ -129,7 +128,7 @@ Auth
 | **AuthService**         | Orchestrates the complete authentication workflow (request OTP → verify OTP → issue token → finalize login). Acts as the application-layer coordinator. |
 | **OtpService**          | Manages the OTP lifecycle: generation, hashing, storage, validation, expiration checks, and triggering delivery.                                        |
 | **LoginSessionService** | Handles temporary login session state, including OTP verification context and session lifecycle management.                                             |
-| **TokenService**        | Responsible for issuing, refreshing, and revoking authentication tokens (e.g., Laravel Sanctum integration).                                            |
+| **TokenService**        | Responsible for issuing, refreshing, and revoking authentication tokens.                                          |
 | **UserResolverService** | Resolves user identity during authentication (finds existing user or creates a new one based on identifier such as phone or email).                     |
 
 
@@ -143,7 +142,7 @@ Auth
 - OTP expiration (default: 10 minutes)  
 - One-time OTP usage (deleted after validation)  
 - LoginSession expiration  
-- Token-based authentication (Sanctum)  
+- Token-based authentication 
 - No static passwords  
 - Stateless API authentication  
 
@@ -165,7 +164,6 @@ Auth
 
 - Laravel 12  
 - PHP 8.2+  
-- Laravel Sanctum  
 - MySQL / PostgreSQL  
 
 ---
@@ -211,7 +209,6 @@ php artisan serve
 
 ```env
 APP_URL=http://localhost:8000
-SANCTUM_STATEFUL_DOMAINS=localhost:3000
 OTP_EXPIRATION_MINUTES=5
 OTP_LENGTH=6
 ```
