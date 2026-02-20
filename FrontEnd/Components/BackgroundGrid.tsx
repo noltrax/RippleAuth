@@ -148,7 +148,7 @@ const BackgroundGrid = forwardRef<BackgroundGridRef>((_, ref) => {
           position: "fixed",
           top: 20,
           left: theme === "light" ? 20 : window.innerWidth - 50,
-          zIndex: 10,
+          zIndex: 100,
           cursor: "pointer",
           pointerEvents: "auto",
         }}

@@ -10,8 +10,16 @@ import {
 } from "@/Components/ui/input-otp";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import { Mail, Phone, AlertCircle, XCircle, HelpCircle } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  AlertCircle,
+  XCircle,
+  HelpCircle,
+  ArrowLeft,
+} from "lucide-react";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import { animate, splitText, stagger } from "animejs";
 
 const api = axios.create({
@@ -27,6 +35,7 @@ type TriggerType = "phone" | "email" | "fail" | "error" | "unknown";
 
 type Props = {
   onTrigger: (type: TriggerType, theme: "light" | "dark") => void;
+  onLoginSuccess?: () => void; // new prop
 };
 
 const detectInputKind = (value: string): InputKind => {
@@ -40,7 +49,7 @@ const isValidEmail = (value: string) =>
   value.includes("@") && value.includes(".");
 const isValidPhone = (value: string) => value.length >= 6;
 
-export default function LoginForm({ onTrigger }: Props) {
+export default function LoginForm({ onTrigger, onLoginSuccess }: Props) {
   const { theme } = useTheme();
 
   const [value, setValue] = useState("");
@@ -53,16 +62,15 @@ export default function LoginForm({ onTrigger }: Props) {
   const [identifierToken, setIdentifierToken] = useState<string | null>(null);
 
   const [buttonText, setButtonText] = useState("login");
-  const [displayText, setDisplayText] = useState("login");
   const buttonTextRef = useRef<HTMLSpanElement>(null);
-  const [number, setNumber] = useState<number>(1);
 
+  // 🔹 Anime.js animation for button text
   useEffect(() => {
-    const { chars: oldChars } = splitText(buttonTextRef.current!, {
+    if (!buttonTextRef.current) return;
+
+    const { chars: oldChars } = splitText(buttonTextRef.current, {
       chars: { wrap: "auto" },
     });
-
-    console.log(oldChars);
 
     animate(oldChars, {
       translateY: ["0%", "100%"],
@@ -71,9 +79,10 @@ export default function LoginForm({ onTrigger }: Props) {
       easing: "easeInOutQuad",
       delay: stagger(100),
       onComplete: () => {
-        buttonTextRef.current!.innerHTML = buttonText;
+        if (!buttonTextRef.current) return;
+        buttonTextRef.current.innerHTML = buttonText;
 
-        const { chars: newChars } = splitText(buttonTextRef.current!, {
+        const { chars: newChars } = splitText(buttonTextRef.current, {
           chars: { wrap: "auto" },
         });
 
@@ -100,12 +109,9 @@ export default function LoginForm({ onTrigger }: Props) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
-
     const detectedKind = detectInputKind(val);
 
-    if (detectedKind === "phone") {
-      val = sanitizePhone(val);
-    }
+    if (detectedKind === "phone") val = sanitizePhone(val);
 
     setValue(val);
     setInputKind(detectedKind);
@@ -116,7 +122,6 @@ export default function LoginForm({ onTrigger }: Props) {
     if (!value) {
       setValidationState("fail");
       setButtonText("No Input!");
-
       return;
     }
 
@@ -140,7 +145,10 @@ export default function LoginForm({ onTrigger }: Props) {
 
       setIdentifierToken(data.identifier_token);
       setValidationState("idle");
+
+      // fade out input, fade in OTP
       setShowOTP(true);
+      setButtonText("Verify OTP!");
     } catch (error) {
       setValidationState("error");
       setButtonText("Server Failed!");
@@ -148,7 +156,7 @@ export default function LoginForm({ onTrigger }: Props) {
   };
 
   const handleVerifyOTP = async () => {
-    if (!identifierToken || otp.length !== 4) return;
+    if (!identifierToken || otp.length !== 6) return;
 
     try {
       await api.post("/api/auth/verify", {
@@ -159,10 +167,18 @@ export default function LoginForm({ onTrigger }: Props) {
       setValidationState("idle");
       onTrigger(inputKind, theme);
 
-      // 🔥 redirect or set auth state here
+      // ✅ call the success callback
+      onLoginSuccess?.();
     } catch (error) {
       setValidationState("error");
+      setButtonText("Invalid OTP!");
     }
+  };
+
+  const handleBack = () => {
+    setShowOTP(false);
+    setOtp("");
+    setButtonText("login");
   };
 
   const getIcon = (type: TriggerType) => {
@@ -181,9 +197,9 @@ export default function LoginForm({ onTrigger }: Props) {
   };
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center w-fit h-fit self-center justify-self-center z-10">
+    <div className="absolute inset-0 flex items-center justify-center w-fit h-fit self-center justify-self-center">
       <Card
-        className="w-[320px] p-6"
+        className="w-[320px] p-6 relative"
         style={{
           background: "rgba(255, 255, 255, 0.12)",
           borderRadius: "16px",
@@ -192,54 +208,76 @@ export default function LoginForm({ onTrigger }: Props) {
           WebkitBackdropFilter: "blur(2.8px)",
         }}
       >
-        <CardHeader className="mb-4">
+        <CardHeader className="mb-4 relative">
+          {showOTP && (
+            <Button
+              variant="ghost"
+              className="absolute left-0 top-0"
+              onClick={handleBack}
+            >
+              <ArrowLeft className="text-white" />
+            </Button>
+          )}
           <CardTitle className="text-white text-xl text-center">
             Cool Login
           </CardTitle>
         </CardHeader>
 
         <CardContent className="flex flex-col space-y-4">
-          {!showOTP ? (
-            <>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/80">
-                  {getIcon(triggerType)}
-                </div>
-
-                <Input
-                  placeholder="Email or Phone"
-                  value={value}
-                  onChange={handleChange}
-                  className="pl-10 text-white placeholder-white bg-transparent border border-white/30"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <InputOTP
-                maxLength={4}
-                value={otp}
-                onChange={(val) => setOtp(val)}
+          <AnimatePresence mode="wait">
+            {!showOTP ? (
+              <motion.div
+                key="input"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
               >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                  <InputOTPSlot index={6} />
-                </InputOTPGroup>
-              </InputOTP>
-            </>
-          )}
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/80">
+                    {getIcon(triggerType)}
+                  </div>
+                  <Input
+                    placeholder="Email or Phone"
+                    value={value}
+                    onChange={handleChange}
+                    className="pl-10 text-white placeholder-white bg-transparent border border-white/30"
+                  />
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="otp"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <InputOTP
+                  maxLength={6}
+                  value={otp}
+                  onChange={(val) => setOtp(val)}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <Button
             className="bg-white text-black hover:bg-white/90"
             id="login"
             onClick={showOTP ? handleVerifyOTP : handleSubmit}
           >
             <span ref={buttonTextRef}>
-              {showOTP ? "Verify OTP!" : displayText}
+              {showOTP ? "Verify OTP!" : buttonText}
             </span>
           </Button>
         </CardContent>
