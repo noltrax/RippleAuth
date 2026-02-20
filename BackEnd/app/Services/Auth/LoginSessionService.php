@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection ALL */
+
 namespace App\Services\Auth;
 use App\Exceptions\InvalidCredentialsException;
 use App\Models\LoginSession;
