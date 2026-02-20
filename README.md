@@ -112,28 +112,25 @@ The backend follows Single Responsibility Principle and Clean Service Design.
 ## Core Services
 
 ```
-AuthService
-├── OtpGenerator
-├── OtpStorage
-├── OtpValidator
-├── OtpSenderContract
-│   ├── SmsOtpSender
-│   └── EmailOtpSender
-└── LoginSessionManager
+Auth
+├── AuthService
+├── OtpService
+├── LoginSessionService
+├── TokenService
+└── UserResolverService
 ```
 
 ---
 
 ## Responsibilities
 
-| Component | Responsibility |
-|------------|----------------|
-| AuthService | Orchestrates authentication flow |
-| OtpGenerator | Generates secure OTP |
-| OtpStorage | Hashes and stores OTP |
-| OtpValidator | Validates OTP |
-| OtpSenderContract | Delivery abstraction |
-| LoginSessionManager | Manages temporary login sessions |
+| Component               | Responsibility                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AuthService**         | Orchestrates the complete authentication workflow (request OTP → verify OTP → issue token → finalize login). Acts as the application-layer coordinator. |
+| **OtpService**          | Manages the OTP lifecycle: generation, hashing, storage, validation, expiration checks, and triggering delivery.                                        |
+| **LoginSessionService** | Handles temporary login session state, including OTP verification context and session lifecycle management.                                             |
+| **TokenService**        | Responsible for issuing, refreshing, and revoking authentication tokens (e.g., Laravel Sanctum integration).                                            |
+| **UserResolverService** | Resolves user identity during authentication (finds existing user or creates a new one based on identifier such as phone or email).                     |
 
 ---
 
