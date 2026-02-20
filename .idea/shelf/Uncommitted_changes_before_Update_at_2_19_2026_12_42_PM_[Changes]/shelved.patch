@@ -1,0 +1,367 @@
+Index: BackEnd/app/Models/LoginSession.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?php\nnamespace App\\Models;\n\nuse Illuminate\\Database\\Eloquent\\Model;\nclass LoginSession extends Model{\n    protected $fillable = [\n        'user_id',\n        'identifier_token',\n        'method',\n        'expires_at',\n    ];\n    protected $casts = [\n        'expires_at' => 'datetime'\n    ];\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Models/LoginSession.php b/BackEnd/app/Models/LoginSession.php
+--- a/BackEnd/app/Models/LoginSession.php	(revision ae25c7127380266c57b752ccdafc7b947f193bde)
++++ b/BackEnd/app/Models/LoginSession.php	(date 1771492336011)
+@@ -2,6 +2,13 @@
+ namespace App\Models;
+ 
+ use Illuminate\Database\Eloquent\Model;
++
++/**
++ * @method static create(array $array)
++ * @method static where(string $string, string $identifierToken)
++ * @property User $user
++ * @property mixed $method
++ */
+ class LoginSession extends Model{
+     protected $fillable = [
+         'user_id',
+Index: BackEnd/app/Services/AuthService.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Services/AuthService.php b/BackEnd/app/Services/Auth/AuthService.php
+rename from BackEnd/app/Services/AuthService.php
+rename to BackEnd/app/Services/Auth/AuthService.php
+--- a/BackEnd/app/Services/AuthService.php	(revision ae25c7127380266c57b752ccdafc7b947f193bde)
++++ b/BackEnd/app/Services/Auth/AuthService.php	(date 1771492336021)
+@@ -1,111 +1,65 @@
+ <?php
+-namespace App\Services;
++namespace App\Services\Auth;
+ use App\Contracts\AuthServiceContract;
+ use App\Exceptions\InvalidCredentialsException;
+-use App\Models\LoginSession;
+ use App\Models\Otp;
+ use App\Models\User;
+ use Illuminate\Support\Facades\Hash;
+-use Illuminate\Support\Str;
++
++readonly class AuthService implements AuthServiceContract{
+ 
+-class AuthService implements AuthServiceContract{
++    public function __construct(
++        private UserResolverService $userResolver,
++        private LoginSessionService $sessionService,
++        private OtpService          $otpService,
++        private TokenService        $tokenService,
++
++    ) {}
+ 
+     /**
+      * @throws InvalidCredentialsException
+      */
++
+     public function identify(array $credentials): string{
+ 
+         if($credentials['method']==='email'){
+-            $user= $this->createUserWithEmail($credentials);
+-
++            $user = $this->userResolver->resolveByEmail($credentials['email']);
+         }
+         elseif ($credentials['method']==='phone'){
+-            $user= $this->createUserWithPhone($credentials);
+-            $this->generateOtp($user);
++            $user= $this->userResolver->resolveByPhone($credentials['phone']);
++            $this->otpService->generateOtp($user);
+         }
+         else{
+             throw new InvalidCredentialsException('Unsupported method.');
+         }
+-        return $this->createLoginSession($user, $credentials);
+-
++        return $this->sessionService->createLoginSession($user, $credentials);
+ 
+-    }
+-    private function createLoginSession(User $user,array $credentials): LoginSession
+-    {
+-        $identifierToken = Str::uuid()->toString();
+-        return LoginSession::create([
+-            'user_id' => $user->id,
+-            'identifier_token' => $identifierToken,
+-            'method' => $credentials['method'],
+-            'expires_at' => now()->addMinutes(10),
+-        ]);
+ 
+     }
+ 
+ 
+-    private function createUserWithEmail(array $credentials):User
+-    {
+-         return User::firstOrCreate(
+-            ['email' => $credentials['email']],
+-            ['password' => null]
+-        );
+-    }
+-
+-    private function createUserWithPhone(array $credentials):?User
+-    {
+-        return User::firstOrCreate(
+-            ['phone' => $credentials['phone']],
+-            ['password' => null]
+-        );
+-    }
+-    private function generateOtp(User $user): string
+-    {
+-        $otp = rand(100000, 999999);
+ 
+-        Otp::create([
+-            'phone' => $user->phone,
+-            'otp_hash' => Hash::make($otp),
+-            'expires_at' => now()->addMinutes(5),
+-        ]);
+-        return $otp;
+ 
+-        // In real app, send SMS here
+-    }
+ 
+     /**
+      * @throws InvalidCredentialsException
+      */
+     public function verify(array $data): string
+     {
+-        $session = $this->getValidSession($data['identifier_token']);
++        $session = $this->sessionService->getValidSession($data['identifier_token']);
+ 
+         $user = $session->user;
+ 
+         $this->validateCredentials($session->method, $user, $data);
+ 
+-        $token = $this->issueToken($user);
++        $token = $this->tokenService->issueToken($user);
+ 
+-        $this->finalizeSession($session);
++        $this->sessionService->finalizeSession($session);
+ 
+         return $token;
+ 
+     }
+ 
+-    /**
+-     * @throws InvalidCredentialsException
+-     */
+-    private function getValidSession(string $identifierToken): LoginSession
+-    {
+-        $session = LoginSession::where('identifier_token', $identifierToken)
+-            ->where('expires_at', '>', now())
+-            ->first();
+-
+-        if (!$session) {
+-            throw new InvalidCredentialsException('Session expired or invalid.');
+-        }
+-
+-        return $session;
+-    }
+ 
+     /**
+      * @throws InvalidCredentialsException
+@@ -142,7 +96,7 @@
+             throw new InvalidCredentialsException('OTP required.');
+         }
+ 
+-        $record = Otp::where('phone', $user->phone)
++        $record = Otp::where($user->phone, 'phone')
+             ->where('expires_at', '>', now())
+             ->latest()
+             ->first();
+@@ -154,14 +108,7 @@
+         $record->delete();
+ 
+     }
+-    private function issueToken(User $user): string
+-    {
+-        return $user->createToken('coolLogin')->plainTextToken;
+-    }
+-    private function finalizeSession(LoginSession $session): void
+-    {
+-        $session->delete();
+-    }
++
+ 
+ 
+ }
+Index: BackEnd/app/Services/Auth/TokenService.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Services/Auth/TokenService.php b/BackEnd/app/Services/Auth/TokenService.php
+new file mode 100644
+--- /dev/null	(date 1771490760721)
++++ b/BackEnd/app/Services/Auth/TokenService.php	(date 1771490760721)
+@@ -0,0 +1,10 @@
++<?php
++namespace App\Services\Auth;
++use App\Models\User;
++
++class TokenService{
++    public function issueToken(User $user): string
++    {
++        return $user->createToken('coolLogin')->plainTextToken;
++    }
++}
+Index: BackEnd/app/Models/User.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?php\n\nnamespace App\\Models;\n\n// use Illuminate\\Contracts\\Auth\\MustVerifyEmail;\nuse Database\\Factories\\UserFactory;\nuse Illuminate\\Database\\Eloquent\\Factories\\HasFactory;\nuse Illuminate\\Foundation\\Auth\\User as Authenticatable;\nuse Illuminate\\Notifications\\Notifiable;\nuse Laravel\\Sanctum\\HasApiTokens;\n\nclass User extends Authenticatable\n{\n    /** @use HasFactory<UserFactory> */\n    use HasFactory, Notifiable, HasApiTokens;\n\n    /**\n     * The attributes that are mass assignable.\n     *\n     * @var list<string>\n     */\n    protected $fillable = [\n        'email',\n        'password',\n        'phone',\n        'phone_verified_at',\n        'email_verified_at',\n    ];\n\n    /**\n     * The attributes that should be hidden for serialization.\n     *\n     * @var list<string>\n     */\n    protected $hidden = [\n        'password',\n        'remember_token',\n    ];\n\n    /**\n     * Get the attributes that should be cast.\n     *\n     * @return array<string, string>\n     */\n    protected function casts(): array\n    {\n        return [\n            'email_verified_at' => 'datetime',\n            'phone_verified_at' => 'datetime',\n            'password' => 'hashed',\n        ];\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Models/User.php b/BackEnd/app/Models/User.php
+--- a/BackEnd/app/Models/User.php	(revision ae25c7127380266c57b752ccdafc7b947f193bde)
++++ b/BackEnd/app/Models/User.php	(date 1771492335988)
+@@ -9,6 +9,11 @@
+ use Illuminate\Notifications\Notifiable;
+ use Laravel\Sanctum\HasApiTokens;
+ 
++/**
++ * @method static firstOrCreate(string[] $array, null[] $array1)
++ * @property string $phone
++ * @property mixed $password
++ */
+ class User extends Authenticatable
+ {
+     /** @use HasFactory<UserFactory> */
+Index: BackEnd/app/Models/Otp.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?php\n\nnamespace App\\Models;\n\nuse Illuminate\\Database\\Eloquent\\Model;\n\nclass Otp extends Model\n{\n    protected $fillable = [\n        'phone',\n        'otp_hash',\n        'expires_at'\n    ];\n    protected $casts = [\n        'expires_at' => 'datetime'\n    ];\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Models/Otp.php b/BackEnd/app/Models/Otp.php
+--- a/BackEnd/app/Models/Otp.php	(revision ae25c7127380266c57b752ccdafc7b947f193bde)
++++ b/BackEnd/app/Models/Otp.php	(date 1771492336001)
+@@ -4,6 +4,10 @@
+ 
+ use Illuminate\Database\Eloquent\Model;
+ 
++/**
++ * @method static where(string $string, mixed $phone)
++ * @method static create(array $array)
++ */
+ class Otp extends Model
+ {
+     protected $fillable = [
+Index: BackEnd/app/Services/Auth/OtpService.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Services/Auth/OtpService.php b/BackEnd/app/Services/Auth/OtpService.php
+new file mode 100644
+--- /dev/null	(date 1771489818496)
++++ b/BackEnd/app/Services/Auth/OtpService.php	(date 1771489818496)
+@@ -0,0 +1,22 @@
++<?php
++namespace App\Services\Auth;
++use App\Models\Otp;
++use App\Models\User;
++use Illuminate\Support\Facades\Hash;
++class OtpService{
++    public function generateOtp(User $user): string
++    {
++        $otp = rand(100000, 999999);
++
++        Otp::create([
++            'phone' => $user->phone,
++            'otp_hash' => Hash::make($otp),
++            'expires_at' => now()->addMinutes(5),
++        ]);
++        return $otp;
++
++        // In real app, send SMS here
++    }
++
++}
++
+Index: BackEnd/app/Services/Auth/LoginSessionService.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Services/Auth/LoginSessionService.php b/BackEnd/app/Services/Auth/LoginSessionService.php
+new file mode 100644
+--- /dev/null	(date 1771492336029)
++++ b/BackEnd/app/Services/Auth/LoginSessionService.php	(date 1771492336029)
+@@ -0,0 +1,40 @@
++<?php
++namespace App\Services\Auth;
++use App\Exceptions\InvalidCredentialsException;
++use App\Models\LoginSession;
++use App\Models\User;
++use Illuminate\Support\Str;
++
++class LoginSessionService{
++    public function createLoginSession(User $user,array $credentials): LoginSession
++    {
++        $identifierToken = Str::uuid()->toString();
++        return LoginSession::create([
++            'user_id' => $user->id,
++            'identifier_token' => $identifierToken,
++            'method' => $credentials['method'],
++            'expires_at' => now()->addMinutes(10),
++        ]);
++
++    }
++    /**
++     * @throws InvalidCredentialsException
++     */
++    public function getValidSession(string $identifierToken): LoginSession
++    {
++        $session = LoginSession::where($identifierToken, 'identifier_token')
++            ->where('expires_at', '>', now())
++            ->first();
++
++        if (!$session) {
++            throw new InvalidCredentialsException('Session expired or invalid.');
++        }
++
++        return $session;
++    }
++    public function finalizeSession(LoginSession $session): void
++    {
++        $session->delete();
++    }
++
++}
+Index: BackEnd/app/Services/Auth/UserResolverService.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BackEnd/app/Services/Auth/UserResolverService.php b/BackEnd/app/Services/Auth/UserResolverService.php
+new file mode 100644
+--- /dev/null	(date 1771488495969)
++++ b/BackEnd/app/Services/Auth/UserResolverService.php	(date 1771488495969)
+@@ -0,0 +1,23 @@
++<?php
++namespace App\Services\Auth;
++use App\Models\User;
++
++class UserResolverService
++{
++    public function resolveByEmail(string $email): User
++    {
++        return User::firstOrCreate(
++            ['email' => $email],
++            ['password' => null]
++        );
++    }
++
++    public function resolveByPhone(string $phone): User
++    {
++        return User::firstOrCreate(
++            ['phone' => $phone],
++            ['password' => null]
++        );
++    }
++
++}

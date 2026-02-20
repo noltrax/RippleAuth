@@ -9,6 +9,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @method static firstOrCreate(string[] $array)
+ * @property string $phone
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -21,7 +25,6 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'email',
-        'password',
         'phone',
         'phone_verified_at',
         'email_verified_at',
@@ -33,7 +36,6 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
         'remember_token',
     ];
 
@@ -47,7 +49,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
-            'password' => 'hashed',
         ];
     }
 }

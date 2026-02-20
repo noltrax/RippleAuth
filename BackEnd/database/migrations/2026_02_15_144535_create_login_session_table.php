@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('login_session', function (Blueprint $table) {
+        Schema::create('login_sessions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('identifier_token');
+            $table->string('method');
+            $table->timestamp('expires_at');
             $table->timestamps();
         });
     }

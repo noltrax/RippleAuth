@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('otp', function (Blueprint $table) {
+        Schema::create('otps', function (Blueprint $table) {
             $table->id();
             $table->string('phone');
             $table->string('otp_hash');
