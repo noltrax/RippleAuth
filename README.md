@@ -48,7 +48,7 @@ Designed with clean architecture principles, scalable backend services, and a sm
 - Two-step login flow  
 - OTP generation & hashing  
 - Login session management  
-- Token-based authentication (Laravel Sanctum)  
+- Token-based authentication 
 - Service-based architecture  
 - Strategy pattern for OTP delivery (SMS / Email)  
 
@@ -100,7 +100,6 @@ User submits:
 - Validates LoginSession  
 - Validates OTP  
 - Deletes OTP record  
-- Issues Sanctum token  
 - Returns API token  
 
 ---
@@ -112,81 +111,38 @@ The backend follows Single Responsibility Principle and Clean Service Design.
 ## Core Services
 
 ```
-AuthService
-├── OtpGenerator
-├── OtpStorage
-├── OtpValidator
-├── OtpSenderContract
-│   ├── SmsOtpSender
-│   └── EmailOtpSender
-└── LoginSessionManager
+Auth
+├── AuthService
+├── OtpService
+├── LoginSessionService
+├── TokenService
+└── UserResolverService
 ```
 
 ---
 
 ## Responsibilities
 
-| Component | Responsibility |
-|------------|----------------|
-| AuthService | Orchestrates authentication flow |
-| OtpGenerator | Generates secure OTP |
-| OtpStorage | Hashes and stores OTP |
-| OtpValidator | Validates OTP |
-| OtpSenderContract | Delivery abstraction |
-| LoginSessionManager | Manages temporary login sessions |
+| Component               | Responsibility                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AuthService**         | Orchestrates the complete authentication workflow (request OTP → verify OTP → issue token → finalize login). Acts as the application-layer coordinator. |
+| **OtpService**          | Manages the OTP lifecycle: generation, hashing, storage, validation, expiration checks, and triggering delivery.                                        |
+| **LoginSessionService** | Handles temporary login session state, including OTP verification context and session lifecycle management.                                             |
+| **TokenService**        | Responsible for issuing, refreshing, and revoking authentication tokens.                                          |
+| **UserResolverService** | Resolves user identity during authentication (finds existing user or creates a new one based on identifier such as phone or email).                     |
 
----
 
-# 🧠 Service Container & Service Providers
 
-This backend leverages Laravel’s Service Container for dependency injection and loose coupling.
 
-## Why?
 
-- Swap SMS provider without touching business logic  
-- Test services independently  
-- Follow Dependency Inversion Principle  
-- Maintain scalable architecture  
-
----
-
-## Service Binding Example
-
-In `AppServiceProvider` (or a dedicated `AuthServiceProvider`):
-
-```php
-public function register(): void
-{
-    $this->app->bind(
-        OtpSenderContract::class,
-        SmsOtpSender::class
-    );
-
-    $this->app->bind(
-        AuthServiceContract::class,
-        AuthService::class
-    );
-}
-```
-
-### What This Achieves
-
-- `AuthService` depends on `OtpSenderContract`  
-- The container injects `SmsOtpSender`  
-- You can switch to `EmailOtpSender` by changing one binding  
-- Zero modification required in `AuthService`  
-
-This follows the Strategy Pattern and Dependency Injection principles.
-
----
 
 # 🛡 Security Features
 
 - OTPs are hashed before storage  
-- OTP expiration (default: 5 minutes)  
+- OTP expiration (default: 10 minutes)  
 - One-time OTP usage (deleted after validation)  
 - LoginSession expiration  
-- Token-based authentication (Sanctum)  
+- Token-based authentication 
 - No static passwords  
 - Stateless API authentication  
 
@@ -208,7 +164,6 @@ This follows the Strategy Pattern and Dependency Injection principles.
 
 - Laravel 12  
 - PHP 8.2+  
-- Laravel Sanctum  
 - MySQL / PostgreSQL  
 
 ---
@@ -254,7 +209,6 @@ php artisan serve
 
 ```env
 APP_URL=http://localhost:8000
-SANCTUM_STATEFUL_DOMAINS=localhost:3000
 OTP_EXPIRATION_MINUTES=5
 OTP_LENGTH=6
 ```
@@ -266,7 +220,7 @@ OTP_LENGTH=6
 - Single Responsibility per service  
 - Clean orchestration via AuthService  
 - Strategy Pattern for OTP delivery  
-- Dependency Injection via Service Container  
+- Dependency Injection 
 - Stateless authentication  
 - Frontend / Backend separation of concerns  
 
